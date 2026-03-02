@@ -74,6 +74,11 @@ var paddles = {
   player2: {},
 };
 
+var score = {
+  player1: 0,
+  player2: 0,
+};
+
 // ----------------------------------------------------------------------------
 // Lifecycle functions
 // ----------------------------------------------------------------------------
@@ -101,8 +106,14 @@ function draw() {
   background(0);
   Object.entries(bodies).forEach(([_, body]) => {
     const bodyStyle = BODY_STYLES[body.name];
+    const r = bodyStyle.radius;
     fill(bodyStyle.color);
-    circle(body.position.x, body.position.y, bodyStyle.radius);
+    noStroke();
+    circle(body.position.x, body.position.y, r);
+    fill(255);
+    textSize(11);
+    textAlign(CENTER, TOP);
+    text(body.name, body.position.x, body.position.y + r / 2 + 4);
   });
 
   ball.prevPositions.forEach((pos, i) => {
@@ -113,6 +124,7 @@ function draw() {
   });
   circle(ball.position.x, ball.position.y, 20);
   drawPaddles();
+  drawScore();
 
   incrementDate();
 }
@@ -161,9 +173,14 @@ function updateScaleFactor() {
 function initBall() {
   ball.position.x = windowWidth / 2.0;
   ball.position.y = 0.0;
+  ball.prevPositions = [];
   const angle = random(TWO_PI);
   ball.velocity.x = 10 * cos(angle);
   ball.velocity.y = 10 * sin(angle);
+}
+
+function resetBall() {
+  initBall();
 }
 
 function computeGravity(bodies) {
@@ -190,7 +207,16 @@ function updateBall() {
   ball.position.x += ball.velocity.x;
   ball.position.y += ball.velocity.y;
 
-  if (ball.position.x < 0 || ball.position.x > windowWidth)  ball.velocity.x *= -1;
+  if (ball.position.x < 0) {
+    score.player1++;
+    resetBall();
+    return;
+  }
+  if (ball.position.x > windowWidth) {
+    score.player2++;
+    resetBall();
+    return;
+  }
   if (ball.position.y < 0 || ball.position.y > windowHeight) ball.velocity.y *= -1;
 
   if (ballHitsPaddle(paddles.player1)) {
@@ -271,6 +297,14 @@ function updateAI() {
     paddle.y -= PADDLE_SPEED;
   }
   paddle.y = constrain(paddle.y, 0, windowHeight - PADDLE_HEIGHT);
+}
+
+function drawScore() {
+  fill(255);
+  noStroke();
+  textSize(24);
+  textAlign(CENTER, BOTTOM);
+  text(`${score.player2}  —  ${score.player1}`, windowWidth / 2, windowHeight - 16);
 }
 
 function drawPaddles() {
