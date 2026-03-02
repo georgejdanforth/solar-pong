@@ -10,6 +10,9 @@ const BODY_NAMES = [
   "neptune",
   "pluto",
 ];
+const PADDLE_WIDTH = 10;
+const PADDLE_HEIGHT = 100;
+const PADDLE_SPEED = 10;
 
 // ----------------------------------------------------------------------------
 // Global state
@@ -24,6 +27,11 @@ var ball = {
   prevPositions: [],
 }
 
+var paddles = {
+  player1: {},
+  player2: {},
+};
+
 // ----------------------------------------------------------------------------
 // Lifecycle functions
 // ----------------------------------------------------------------------------
@@ -34,6 +42,7 @@ function setup() {
   updateScaleFactor();
   updateBodies();
   initBall();
+  initPaddles();
 }
 
 function windowResized() {
@@ -44,6 +53,7 @@ function windowResized() {
 
 function draw() {
   updateBodies();
+  updatePaddles();
   updateBall();
 
   background(0);
@@ -58,6 +68,7 @@ function draw() {
     circle(pos.x, pos.y, 20 * alpha);
   });
   circle(ball.position.x, ball.position.y, 20);
+  drawPaddles();
 
   incrementDate();
 }
@@ -104,10 +115,11 @@ function updateScaleFactor() {
 }
 
 function initBall() {
-  ball.position.x = 0.0;
+  ball.position.x = windowWidth / 2.0;
   ball.position.y = 0.0;
-  ball.velocity.x = 2.0;
-  ball.velocity.y = 2.0;
+  const angle = random(TWO_PI);
+  ball.velocity.x = 10 * cos(angle);
+  ball.velocity.y = 10 * sin(angle);
 }
 
 function computeGravity(bodies) {
@@ -136,10 +148,58 @@ function updateBall() {
 
   if (ball.position.x < 0 || ball.position.x > windowWidth)  ball.velocity.x *= -1;
   if (ball.position.y < 0 || ball.position.y > windowHeight) ball.velocity.y *= -1;
+
+  if (ballHitsPaddle(paddles.player1)) {
+    ball.velocity.x *= -1;
+    ball.position.x = paddles.player1.x - 10;
+  }
+}
+
+function ballHitsPaddle(paddle) {
+  const radius = 10;
+  const closestX = constrain(ball.position.x, paddle.x, paddle.x + paddle.w);
+  const closestY = constrain(ball.position.y, paddle.y, paddle.y + paddle.h);
+  const dx = ball.position.x - closestX;
+  const dy = ball.position.y - closestY;
+  return (dx * dx + dy * dy) < (radius * radius);
 }
 
 function debug(fn) {
   if (frameCount === 1 || frameCount % 60 === 0) {
     fn();
   }
+}
+
+function initPaddles() {
+  paddles.player1 = {
+    x: windowWidth - 40,
+    y: (windowHeight / 2) - (PADDLE_HEIGHT / 2),
+    w: PADDLE_WIDTH,
+    h: PADDLE_HEIGHT,
+  };
+}
+
+function updatePaddles() {
+  if (keyIsDown(UP_ARROW)) {
+    paddles.player1.y -= PADDLE_SPEED;
+    if (paddles.player1.y < 0) {
+      paddles.player1.y = 0;
+    }
+  }
+  if (keyIsDown(DOWN_ARROW)) {
+    paddles.player1.y += PADDLE_SPEED;
+    if (paddles.player1.y > windowHeight - PADDLE_HEIGHT) {
+      paddles.player1.y = windowHeight - PADDLE_HEIGHT;
+    }
+  }
+}
+
+function drawPaddles() {
+  fill('white')
+  rect(
+    paddles.player1.x,
+    paddles.player1.y,
+    paddles.player1.w,
+    paddles.player1.h,
+  );
 }
