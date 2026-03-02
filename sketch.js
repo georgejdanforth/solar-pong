@@ -10,6 +10,48 @@ const BODY_NAMES = [
   "neptune",
   "pluto",
 ];
+BODY_STYLES = {
+  sun: {
+    radius: 20,
+    color: "#fdf83e"
+  },
+  mercury: {
+    radius: 5,
+    color: "#a41600",
+  },
+  venus: {
+    radius: 8,
+    color: "#dcb100",
+  },
+  earth: {
+    radius: 10,
+    color: "#1ee6a9",
+  },
+  mars: {
+    radius: 8,
+    color: "#de2202",
+  },
+  jupiter: {
+    radius: 16,
+    color: "#f89125",
+  },
+  saturn: {
+    radius: 14,
+    color: "#f5ca66",
+  },
+  neptune: {
+    radius: 12,
+    color: "#66c9f5",
+  },
+  uranus: {
+    radius: 11,
+    color: "#66f5d5",
+  },
+  pluto: {
+    radius: 5,
+    color: "#1887dc",
+  },
+};
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 100;
 const PADDLE_SPEED = 10;
@@ -58,7 +100,9 @@ function draw() {
 
   background(0);
   Object.entries(bodies).forEach(([_, body]) => {
-    circle(body.position.x, body.position.y, 10);
+    const bodyStyle = BODY_STYLES[body.name];
+    fill(bodyStyle.color);
+    circle(body.position.x, body.position.y, bodyStyle.radius);
   });
 
   ball.prevPositions.forEach((pos, i) => {
