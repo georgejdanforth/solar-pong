@@ -56,6 +56,8 @@ const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 100;
 const PADDLE_SPEED = 10;
 
+const G = 1e-26;
+
 // ----------------------------------------------------------------------------
 // Global state
 // ----------------------------------------------------------------------------
@@ -180,17 +182,12 @@ function initBall() {
 }
 
 function resetBall() {
+  currentDate = new Date();
   initBall();
-}
-
-function computeGravity(bodies) {
-
-  return { x: ax, y: ay };
 }
 
 function updateBall() {
   let ax = 0, ay = 0;
-  const G = 1e-27;
   Object.values(bodies).forEach(body => {
     const dx = body.position.x - ball.position.x;
     const dy = body.position.y - ball.position.y;
@@ -302,9 +299,11 @@ function updateAI() {
 function drawScore() {
   fill(255);
   noStroke();
-  textSize(24);
   textAlign(CENTER, BOTTOM);
-  text(`${score.player2}  —  ${score.player1}`, windowWidth / 2, windowHeight - 16);
+  textSize(24);
+  text(`${score.player2}  —  ${score.player1}`, windowWidth / 2, windowHeight - 32);
+  textSize(14);
+  text(currentDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), windowWidth / 2, windowHeight - 12);
 }
 
 function drawPaddles() {
