@@ -18,6 +18,12 @@ var currentDate = new Date();
 var bodies = {};
 var orbitScaleFactor = 0;
 
+var ball = {
+  position: { x: 0.0, y: 0.0 },
+  velocity: { x: 0.0, y: 0.0 },
+  prevPositions: [],
+}
+
 // ----------------------------------------------------------------------------
 // Lifecycle functions
 // ----------------------------------------------------------------------------
@@ -27,7 +33,7 @@ function setup() {
   // that the correct scale factor is applied.
   updateScaleFactor();
   updateBodies();
-  console.log(bodies);
+  initBall();
 }
 
 function windowResized() {
@@ -38,17 +44,20 @@ function windowResized() {
 
 function draw() {
   updateBodies();
+  updateBall();
 
   background(0);
   Object.entries(bodies).forEach(([_, body]) => {
     circle(body.position.x, body.position.y, 10);
   });
-  if (frameCount % 60 === 0) {
-    console.log(Object.entries(bodies).map(([name, body]) => ({
-      name: name,
-      position: body.position,
-    })));
-  }
+
+  ball.prevPositions.forEach((pos, i) => {
+    const alpha = (i + 1) / ball.prevPositions.length;
+    fill(255, 255, 255, alpha * 255);
+    noStroke();
+    circle(pos.x, pos.y, 20 * alpha);
+  });
+  circle(ball.position.x, ball.position.y, 20);
 
   incrementDate();
 }
@@ -92,4 +101,45 @@ function updateScaleFactor() {
   const pluto = window.lagrange.planet_positions.getBody("pluto");
   const radius = sqrt(sq(pluto.position.x) + sq(pluto.position.y));
   orbitScaleFactor = (0.6 * windowWidth) / radius;
+}
+
+function initBall() {
+  ball.position.x = 0.0;
+  ball.position.y = 0.0;
+  ball.velocity.x = 2.0;
+  ball.velocity.y = 2.0;
+}
+
+function computeGravity(bodies) {
+
+  return { x: ax, y: ay };
+}
+
+function updateBall() {
+  let ax = 0, ay = 0;
+  const G = 1e-27;
+  Object.values(bodies).forEach(body => {
+    const dx = body.position.x - ball.position.x;
+    const dy = body.position.y - ball.position.y;
+    const rSq = max(sq(dx) + sq(dy), 0.01);
+    const r = sqrt(rSq);
+    const a = (G * body.mass) / rSq;
+    ax += a * (dx / r);
+    ay += a * (dy / r);
+  });
+  ball.velocity.x += ax;
+  ball.velocity.y += ay;
+  ball.prevPositions.push({ x: ball.position.x, y: ball.position.y });
+  if (ball.prevPositions.length > 100) ball.prevPositions.shift();
+  ball.position.x += ball.velocity.x;
+  ball.position.y += ball.velocity.y;
+
+  if (ball.position.x < 0 || ball.position.x > windowWidth)  ball.velocity.x *= -1;
+  if (ball.position.y < 0 || ball.position.y > windowHeight) ball.velocity.y *= -1;
+}
+
+function debug(fn) {
+  if (frameCount === 1 || frameCount % 60 === 0) {
+    fn();
+  }
 }
