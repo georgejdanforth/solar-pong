@@ -153,6 +153,10 @@ function updateBall() {
     ball.velocity.x *= -1;
     ball.position.x = paddles.player1.x - 10;
   }
+  if (ballHitsPaddle(paddles.player2)) {
+    ball.velocity.x *= -1;
+    ball.position.x = paddles.player2.x + paddles.player2.w + 10;
+  }
 }
 
 function ballHitsPaddle(paddle) {
@@ -177,6 +181,12 @@ function initPaddles() {
     w: PADDLE_WIDTH,
     h: PADDLE_HEIGHT,
   };
+  paddles.player2 = {
+    x: 40,
+    y: (windowHeight / 2) - (PADDLE_HEIGHT / 2),
+    w: PADDLE_WIDTH,
+    h: PADDLE_HEIGHT,
+  };
 }
 
 function updatePaddles() {
@@ -192,14 +202,36 @@ function updatePaddles() {
       paddles.player1.y = windowHeight - PADDLE_HEIGHT;
     }
   }
+  updateAI();
+}
+
+function predictBallY() {
+  if (ball.velocity.x >= 0) return null; // ball moving away
+  const t = -ball.position.x / ball.velocity.x;
+  let y = ball.position.y + t * ball.velocity.y;
+  // fold y back into window bounds to account for wall bounces
+  y = y % (2 * windowHeight);
+  if (y < 0) y += 2 * windowHeight;
+  if (y > windowHeight) y = 2 * windowHeight - y;
+  return y;
+}
+
+function updateAI() {
+  const targetY = predictBallY();
+  const centerY = windowHeight / 2 - PADDLE_HEIGHT / 2;
+  const aimY = targetY !== null ? targetY - PADDLE_HEIGHT / 2 : centerY;
+  const paddle = paddles.player2;
+  if (paddle.y < aimY - PADDLE_SPEED) {
+    paddle.y += PADDLE_SPEED;
+  } else if (paddle.y > aimY + PADDLE_SPEED) {
+    paddle.y -= PADDLE_SPEED;
+  }
+  paddle.y = constrain(paddle.y, 0, windowHeight - PADDLE_HEIGHT);
 }
 
 function drawPaddles() {
-  fill('white')
-  rect(
-    paddles.player1.x,
-    paddles.player1.y,
-    paddles.player1.w,
-    paddles.player1.h,
-  );
+  fill('white');
+  noStroke();
+  rect(paddles.player1.x, paddles.player1.y, paddles.player1.w, paddles.player1.h);
+  rect(paddles.player2.x, paddles.player2.y, paddles.player2.w, paddles.player2.h);
 }
