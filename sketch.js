@@ -217,11 +217,13 @@ function updateBall() {
   if (ball.position.y < 0 || ball.position.y > windowHeight) ball.velocity.y *= -1;
 
   if (ballHitsPaddle(paddles.player1)) {
-    ball.velocity.x *= -1;
+    ball.velocity.x *= -1.1;
+    ball.velocity.y *= 1.1;
     ball.position.x = paddles.player1.x - 10;
   }
   if (ballHitsPaddle(paddles.player2)) {
-    ball.velocity.x *= -1;
+    ball.velocity.x *= -1.1;
+    ball.velocity.y *= 1.1;
     ball.position.x = paddles.player2.x + paddles.player2.w + 10;
   }
 }
